@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# reload daemon configuration
+systemctl daemon-reload
+
+exit 0
