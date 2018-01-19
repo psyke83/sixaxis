@@ -6,17 +6,34 @@
 
 [[ -z "$SIXAXIS_TIMEOUT" ]] && SIXAXIS_TIMEOUT=600
 
-UDEV_ENV="$1"
-# unmangle path (systemd brain-damage...)
-if [[ ! -e "/sys$UDEV_ENV" ]]; then
-    UDEV_ENV="${UDEV_ENV:0:41}-${UDEV_ENV:42}"
-    UDEV_ENV="${UDEV_ENV:0:45}-${UDEV_ENV:46}"
-    UDEV_ENV="${UDEV_ENV:0:51}-${UDEV_ENV:52}"
-    [[ ! -e "/sys$UDEV_ENV" ]] && exit
+unmangle_path() {
+    local adjust
+    local path
+    local fullpath
+    for path in ${1//// }; do
+        if [[ "$adjust" -eq 1 ]]; then
+            fullpath+="-$path"
+            adjust=0
+        else
+            fullpath+="/$path"
+        fi
+
+        if [[ ! -e "$fullpath" ]]; then
+            adjust=1
+        fi
+     done
+
+     echo "$fullpath"
+}
+
+UDEV_DEVPATH="/sys$1"
+# unmangle path (systemd brain-damage): https://github.com/systemd/systemd/issues/5072
+if [[ ! -e "$UDEV_DEVPATH" ]]; then
+    UDEV_DEVPATH="$(unmangle_path /sys$1)"
 fi
 
 # export udev variables into systemd service context
-eval $(udevadm info --query=env --export "/sys$UDEV_ENV")
+eval $(udevadm info --query=env --export "$UDEV_DEVPATH")
 if [[ -z "$NAME" ]] || [[ -z "$UNIQ" ]]; then
     # we're not interested in the /jsX and /eventX udev events.
     exit 0
