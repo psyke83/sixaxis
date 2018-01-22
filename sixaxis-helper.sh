@@ -39,8 +39,32 @@ if [[ -z "$NAME" ]] || [[ -z "$UNIQ" ]]; then
     exit 0
 fi
 
-send_bluezcmd() {
-    echo -e "$@\nquit" | bluetoothctl >/dev/null
+function send_bluezcmd() {
+    # create a named pipe & fd for input for bluetoothctl
+    local fifo="$(mktemp -u)"
+    mkfifo "$fifo"
+    exec 3<>"$fifo"
+    local line
+    while read -r line; do
+        if [[ "$line" == *"[bluetooth]"* ]]; then
+            echo -e "$1" >&3
+            read -r line
+            if [[ -n "$2" ]]; then
+                # collect output for specified amount of time, then echo it
+                local buf
+                while read -r -t "$2" line; do
+                    buf+=("$line")
+                done
+                printf '%s\n' "${buf[@]}"
+            else
+                # allow time for command to process before closing
+                sleep 1
+            fi
+            break
+        fi
+    # read from bluetoothctl buffered line by line
+    done < <(stdbuf -oL bluetoothctl <&3)
+    exec 3>&-
 }
 
 sixaxis_detect() {
