@@ -54,12 +54,15 @@ function send_bluezcmd() {
                 local buf
                 while read -r -t "$2" line; do
                     buf+=("$line")
+                    # reply to any optional challenges
+                    if [[ -n "$4" && "$line" == *"$3"* ]]; then
+                        echo -e "$4" >&3
+                    fi
                 done
                 printf '%s\n' "${buf[@]}"
-            else
-                # allow time for command to process before closing
-                sleep 1
             fi
+            sleep 1
+            echo -e "quit" >&3
             break
         fi
     # read from bluetoothctl buffered line by line
@@ -97,15 +100,9 @@ sixaxis_timeout() {
     fi
 }
 
-sixaxis_settrust() {
-    echo "Setting Bluetooth trust: $SIXAXIS_NAME"
-    send_bluezcmd "trust ${SIXAXIS_MAC^^}"
-}
-
 sixaxis_detect
 if [[ -n "$SIXAXIS_DEVICE" ]]; then
     sixaxis_calibrate
-    sixaxis_settrust
     sixaxis_timeout
 fi
 
