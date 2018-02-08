@@ -1,4 +1,4 @@
 ACTION=="add", SUBSYSTEMS=="input", ENV{DEVNAME}=="/dev/input/event*", ATTRS{name}=="*PLAYSTATION(R)3 Controller", TAG+="systemd", ENV{SYSTEMD_WANTS}="sixaxis@%E{DEVNAME}.service"
-ACTION=="add", SUBSYSTEMS=="input", ENV{DEVNAME}=="/dev/input/event*", ATTRS{name}=="PLAYSTATION(R)3Conteroller*", TAG+="systemd", ENV{SYSTEMD_WANTS}="sixaxis@%E{DEVNAME}.service"
-ACTION=="add", SUBSYSTEMS=="input", ENV{DEVNAME}=="/dev/input/event*", ATTRS{name}=="PS(R) Gamepad", TAG+="systemd", ENV{SYSTEMD_WANTS}="sixaxis@%E{DEVNAME}.service"
-ACTION=="add", SUBSYSTEMS=="input", ENV{DEVNAME}=="/dev/input/event*", ATTRS{name}=="SHANWAN PS3 GamePad", TAG+="systemd", ENV{SYSTEMD_WANTS}="sixaxis@%E{DEVNAME}.service"
+ACTION=="add", SUBSYSTEMS=="input", ENV{DEVNAME}=="/dev/input/event*", ATTRS{name}=="*PLAYSTATION(R)3Conteroller*", TAG+="systemd", ENV{SYSTEMD_WANTS}="sixaxis@%E{DEVNAME}.service"
+ACTION=="add", SUBSYSTEMS=="input", ENV{DEVNAME}=="/dev/input/event*", ATTRS{name}=="*PS(R) Gamepad", TAG+="systemd", ENV{SYSTEMD_WANTS}="sixaxis@%E{DEVNAME}.service"
+ACTION=="add", SUBSYSTEMS=="input", ENV{DEVNAME}=="/dev/input/event*", ATTRS{name}=="*PS3 GamePad", TAG+="systemd", ENV{SYSTEMD_WANTS}="sixaxis@%E{DEVNAME}.service"
