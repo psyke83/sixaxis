@@ -44,14 +44,14 @@ sixaxis_calibrate() {
     local axis
 
     echo "Calibrating: $SIXAXIS_NAME"
-    for axis in ABS_X ABS_Y ABS_RX ABS_RY; do
-        libevdev-tweak-device --abs "$axis" --fuzz 3 "$SIXAXIS_DEVICE"
+    for axis in ABS_X ABS_Y ABS_RX ABS_RY ABS_Z ABS_RZ; do
+        libevdev-tweak-device --abs "$axis" --fuzz 3 "$SIXAXIS_DEVICE" 2>/dev/null
     done
 }
 
 sixaxis_timeout() {
     echo "Setting $SIXAXIS_TIMEOUT second timeout on: $SIXAXIS_NAME"
-    sixaxis-timeout "$SIXAXIS_DEVICE" "$SIXAXIS_TIMEOUT"
+    sixaxis-timeout "$SIXAXIS_DEVICE" "$SIXAXIS_TIMEOUT" 2>/dev/null
     if [[ "$?" -eq 1 ]]; then
         echo "Disconnecting: $SIXAXIS_NAME"
         send_bluezcmd "disconnect ${SIXAXIS_MAC^^}"
