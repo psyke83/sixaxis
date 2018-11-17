@@ -9,34 +9,38 @@ SIXAXIS_MAC="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/uniq)"
 SIXAXIS_NAME="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/name) (${SIXAXIS_MAC^^})"
 [[ -z "$SIXAXIS_TIMEOUT" ]] && SIXAXIS_TIMEOUT=600
 
+function slowecho() {
+    local line
+
+    IFS=$'\n'
+    for line in $(echo -e "${1}"); do
+        echo -e "$line"
+        sleep 1
+    done
+    unset IFS
+}
+
 function send_bluezcmd() {
     # create a named pipe & fd for input for bluetoothctl
     local fifo="$(mktemp -u)"
     mkfifo "$fifo"
     exec 3<>"$fifo"
     local line
-    while read -r line; do
-        if [[ "$line" == *"[bluetooth]"* ]]; then
-            echo -e "$1" >&3
-            read -r line
-            if [[ -n "$2" ]]; then
-                # collect output for specified amount of time, then echo it
-                local buf
-                while read -r -t "$2" line; do
-                    buf+=("$line")
-                    # reply to any optional challenges
-                    if [[ -n "$4" && "$line" == *"$3"* ]]; then
-                        echo -e "$4" >&3
-                    fi
-                done
-                printf '%s\n' "${buf[@]}"
+    while read -t "$2"; do
+        slowecho "$1" >&3
+        # collect output for specified amount of time, then echo it
+        while read -t "$2" -r line; do
+            printf '%s\n' "$line"
+            # (slow) reply to any optional challenges
+            if [[ -n "$3" && "$line" == *"$3"* ]]; then
+                slowecho "$4" >&3
+                break
             fi
-            sleep 1
-            echo -e "quit" >&3
-            break
-        fi
+        done
+        slowecho "quit\n" >&3
+        break
     # read from bluetoothctl buffered line by line
-    done < <(stdbuf -oL bluetoothctl <&3)
+    done < <(stdbuf -oL bluetoothctl --agent=NoInputNoOutput <&3)
     exec 3>&-
 }
 
@@ -54,7 +58,7 @@ sixaxis_timeout() {
     sixaxis-timeout "$SIXAXIS_DEVICE" "$SIXAXIS_TIMEOUT" 2>/dev/null
     if [[ "$?" -eq 1 ]]; then
         echo "Disconnecting: $SIXAXIS_NAME"
-        send_bluezcmd "disconnect ${SIXAXIS_MAC^^}"
+        send_bluezcmd "disconnect ${SIXAXIS_MAC^^}" "1" &>/dev/null
     fi
 }
 
