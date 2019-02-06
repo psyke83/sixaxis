@@ -62,6 +62,16 @@ sixaxis_timeout() {
     fi
 }
 
+sixaxis_rename() {
+    if grep "^Name=PLAYSTATION(R)3 Controller" /var/lib/bluetooth/*/*/info; then
+        echo "BlueZ <5.48 hack: renaming BT profile(s) to make consistent with kernel module name"
+        sed 's/.*Name=PLAYSTATION(R)3 Controller.*/Name=Sony PLAYSTATION(R)3 Controller/' -i /var/lib/bluetooth/*/*/info
+        systemctl restart bluetooth
+        exit
+    fi
+}
+
+sixaxis_rename
 sixaxis_calibrate
 sixaxis_timeout
 
