@@ -35,10 +35,10 @@ main(int argc, char *argv[])
 
         if (retval == -1) {
             close(fds);
-            return 0;
+            return EXIT_FAILURE;
         } else if (retval == 0) {
             close(fds);
-            return 1;
+            return EXIT_SUCCESS;
         }
     }
 }

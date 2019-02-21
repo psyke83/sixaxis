@@ -56,7 +56,7 @@ sixaxis_calibrate() {
 sixaxis_timeout() {
     echo "Setting $SIXAXIS_TIMEOUT second timeout on: $SIXAXIS_NAME"
     sixaxis-timeout "$SIXAXIS_DEVICE" "$SIXAXIS_TIMEOUT" 2>/dev/null
-    if [[ "$?" -eq 1 ]]; then
+    if [[ "$?" -eq 0 ]]; then
         echo "Disconnecting: $SIXAXIS_NAME"
         send_bluezcmd "disconnect ${SIXAXIS_MAC^^}" "1" &>/dev/null
     fi
