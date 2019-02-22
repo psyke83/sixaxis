@@ -6,6 +6,20 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <linux/input.h>
+
+static int
+test_grab(int fds)
+{
+    int rc;
+
+    rc = ioctl(fds, EVIOCGRAB, (void*)1);
+
+    if (rc == 0)
+        ioctl(fds, EVIOCGRAB, (void*)0);
+
+    return rc;
+}
 
 int
 main(int argc, char *argv[])
@@ -36,7 +50,7 @@ main(int argc, char *argv[])
         if (retval == -1) {
             close(fds);
             return EXIT_FAILURE;
-        } else if (retval == 0) {
+        } else if (retval == 0 && test_grab(fds) == 0) {
             close(fds);
             return EXIT_SUCCESS;
         }
