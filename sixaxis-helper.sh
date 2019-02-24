@@ -10,6 +10,10 @@ SIXAXIS_DEVICE="$1"
 
 SIXAXIS_MAC="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/uniq 2>/dev/null)"
 SIXAXIS_NAME="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/name 2>/dev/null) (${SIXAXIS_MAC^^})"
+
+# Parse user timeout configuration (stripping non-number characters to prevent security issues)
+SIXAXIS_TIMEOUT=$(grep -e '^SIXAXIS_TIMEOUT=.*' "/opt/retropie/configs/all/sixaxis_timeout.cfg" 2>/dev/null | cut -d '=' -f2)
+SIXAXIS_TIMEOUT="${SIXAXIS_TIMEOUT//[!0-9]/}"
 [[ -z "$SIXAXIS_TIMEOUT" ]] && SIXAXIS_TIMEOUT=600
 
 function slowecho() {
@@ -76,6 +80,7 @@ sixaxis_rename() {
 
 sixaxis_rename
 sixaxis_calibrate
-sixaxis_timeout
-
+if [[ "$SIXAXIS_TIMEOUT" != "0" ]]; then
+    sixaxis_timeout
+fi
 exit 0
