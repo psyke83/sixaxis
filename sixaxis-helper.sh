@@ -5,8 +5,11 @@
 ##
 
 SIXAXIS_DEVICE="$1"
-SIXAXIS_MAC="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/uniq)"
-SIXAXIS_NAME="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/name) (${SIXAXIS_MAC^^})"
+# only process /dev/input/event*
+! [[ "$SIXAXIS_DEVICE" =~ "/dev/input/event" ]] && exit 0
+
+SIXAXIS_MAC="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/uniq 2>/dev/null)"
+SIXAXIS_NAME="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/name 2>/dev/null) (${SIXAXIS_MAC^^})"
 [[ -z "$SIXAXIS_TIMEOUT" ]] && SIXAXIS_TIMEOUT=600
 
 function slowecho() {
