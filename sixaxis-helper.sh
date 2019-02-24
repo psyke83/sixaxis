@@ -33,10 +33,10 @@ function send_bluezcmd() {
     mkfifo "$fifo"
     exec 3<>"$fifo"
     local line
-    while read -t "$2"; do
+    while true; do
         slowecho "$1" >&3
         # collect output for specified amount of time, then echo it
-        while read -t "$2" -r line; do
+        while read -r line; do
             printf '%s\n' "$line"
             # (slow) reply to any optional challenges
             if [[ -n "$3" && "$line" == *"$3"* ]]; then
@@ -47,7 +47,7 @@ function send_bluezcmd() {
         slowecho "quit\n" >&3
         break
     # read from bluetoothctl buffered line by line
-    done < <(stdbuf -oL bluetoothctl --agent=NoInputNoOutput <&3)
+    done < <(timeout "$2" stdbuf -oL bluetoothctl --agent=NoInputNoOutput <&3)
     exec 3>&-
 }
 
@@ -70,11 +70,15 @@ sixaxis_timeout() {
 }
 
 sixaxis_rename() {
-    if grep "^Name=PLAYSTATION(R)3 Controller" /var/lib/bluetooth/*/*/info; then
+    # ensure initial BT profile has been added to stack
+    send_bluezcmd "devices" "1" &>/dev/null
+
+    if grep "^Name=PLAYSTATION(R)3 Controller" /var/lib/bluetooth/*/"${SIXAXIS_MAC^^}"/info &>/dev/null; then
         echo "BlueZ <5.48 hack: renaming BT profile(s) to make consistent with kernel module name"
-        sed 's/.*Name=PLAYSTATION(R)3 Controller.*/Name=Sony PLAYSTATION(R)3 Controller/' -i /var/lib/bluetooth/*/*/info
-        systemctl restart bluetooth
-        exit
+        systemctl stop bluetooth
+        sed 's/.*Name=PLAYSTATION(R)3 Controller.*/Name=Sony PLAYSTATION(R)3 Controller/' -i /var/lib/bluetooth/*/"${SIXAXIS_MAC^^}"/info
+        systemctl start bluetooth
+        exit 0
     fi
 }
 
