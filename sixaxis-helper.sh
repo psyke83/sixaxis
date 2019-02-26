@@ -8,6 +8,7 @@ SIXAXIS_DEVICE="$1"
 # only process /dev/input/event*
 ! [[ "$SIXAXIS_DEVICE" =~ "/dev/input/event" ]] && exit 0
 
+BLUETOOTH_MAC="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/phys 2>/dev/null)"
 SIXAXIS_MAC="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/uniq 2>/dev/null)"
 SIXAXIS_NAME="$(cat ${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/name 2>/dev/null) (${SIXAXIS_MAC^^})"
 
@@ -70,13 +71,12 @@ sixaxis_timeout() {
 }
 
 sixaxis_rename() {
-    # ensure initial BT profile has been added to stack
-    send_bluezcmd "devices" "1" &>/dev/null
+    local bt_profile="/var/lib/bluetooth/${BLUETOOTH_MAC^^}/${SIXAXIS_MAC^^}/info"
 
-    if grep "^Name=PLAYSTATION(R)3 Controller" /var/lib/bluetooth/*/"${SIXAXIS_MAC^^}"/info &>/dev/null; then
-        echo "BlueZ <5.48 hack: renaming BT profile(s) to make consistent with kernel module name"
+    if [[ "$(grep -e "^Name=PLAYSTATION(R)3 Controller" -e "^Trusted=true" -c "$bt_profile" 2>/dev/null)" == "2" ]]; then
+        echo "BlueZ <5.48 hack: renaming BT profile to make consistent with kernel module name"
         systemctl stop bluetooth
-        sed 's/.*Name=PLAYSTATION(R)3 Controller.*/Name=Sony PLAYSTATION(R)3 Controller/' -i /var/lib/bluetooth/*/"${SIXAXIS_MAC^^}"/info
+        sed 's/.*Name=PLAYSTATION(R)3 Controller.*/Name=Sony PLAYSTATION(R)3 Controller/' -i "$bt_profile"
         systemctl start bluetooth
         exit 0
     fi
