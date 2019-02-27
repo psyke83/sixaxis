@@ -86,5 +86,8 @@ sixaxis_rename
 sixaxis_calibrate
 if [[ "$SIXAXIS_TIMEOUT" != "0" ]]; then
     sixaxis_timeout
+else
+    # delay exit of service slice until device is removed
+    tail -f "$SIXAXIS_DEVICE" &>/dev/null
 fi
 exit 0
