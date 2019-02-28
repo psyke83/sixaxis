@@ -84,10 +84,10 @@ sixaxis_rename() {
 
 sixaxis_rename
 sixaxis_calibrate
-if [[ "$SIXAXIS_TIMEOUT" != "0" ]]; then
-    sixaxis_timeout
-else
+if [[ "$SIXAXIS_TIMEOUT" == "0" ]] || [[ "$BLUETOOTH_MAC" =~ "usb" ]]; then
     # delay exit of service slice until device is removed
     tail -f "$SIXAXIS_DEVICE" &>/dev/null
+else
+    sixaxis_timeout
 fi
 exit 0
