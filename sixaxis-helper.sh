@@ -57,7 +57,7 @@ sixaxis_calibrate() {
 
     echo "Calibrating: $SIXAXIS_NAME"
     for axis in ABS_X ABS_Y ABS_RX ABS_RY ABS_Z ABS_RZ; do
-        libevdev-tweak-device --abs "$axis" --fuzz 3 "$SIXAXIS_DEVICE" 2>/dev/null
+        libevdev-tweak-device --abs "$axis" --fuzz 10 "$SIXAXIS_DEVICE" 2>/dev/null
     done
 }
 
