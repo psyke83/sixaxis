@@ -82,7 +82,23 @@ sixaxis_rename() {
     fi
 }
 
+sixaxis_leds() {
+    local led_paths=($(find "${SIXAXIS_DEVICE/\/dev/\/sys\/class}/device/device/leds" -name "*::sony?" 2>/dev/null))
+    local led_type="sony_controller_battery_"$SIXAXIS_MAC"-charging-blink-full-solid"
+    local led
+
+    for led in "${led_paths[@]}"; do
+        if [[ "$(cat "$led"/brightness)" -eq 1 ]]; then
+            echo "Configuring LED: $led"
+            echo "none" >"$led"/trigger
+            echo "1" >"$led"/brightness
+            echo "$led_type" >"$led"/trigger
+        fi
+    done
+}
+
 sixaxis_rename
+sixaxis_leds
 sixaxis_calibrate
 if [[ "$SIXAXIS_TIMEOUT" == "0" ]] || [[ "$BLUETOOTH_MAC" =~ "usb" ]]; then
     # delay exit of service slice until device is removed
